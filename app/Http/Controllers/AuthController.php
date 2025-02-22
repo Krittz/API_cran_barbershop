@@ -12,24 +12,32 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email|string|max:255',
-            'password' => 'required|string|max:255|min:8'
-        ]);
+        try {
+            $validated = $request->validate([
+                'email' => 'required|email|string|max:255',
+                'password' => 'required|string|max:255|min:8'
+            ]);
 
-        if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
-            $user = Auth::user();
+            if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
+                $user = Auth::user();
 
-            $token = $user->createToken('CrAnBarber')->plainTextToken;
+                $token = $user->createToken('CrAnBarber')->plainTextToken;
 
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Usuário logado com sucesso',
+                ])->cookie('token', $token, 60, null, null, false, true);
+            }
+            throw ValidationException::withMessages([
+                'email' => ['As credenciais fornecidas estão incorretas']
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
-                'status' => 'success',
-                'message' => 'Usuário logado com sucesso',
-            ])->cookie('token', $token, 60, null, null, false, true);
+                'status' => 'error',
+                'message' => 'Erro de validação',
+                'errors' => $e->errors()
+            ], 422);
         }
-        throw ValidationException::withMessages([
-            'email' => ['As credenciais fornecidas estão incorretas']
-        ]);
     }
     public function logout(Request $request)
     {

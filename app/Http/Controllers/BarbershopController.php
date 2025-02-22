@@ -2,40 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CreateBarbershopAction;
 use App\Models\Barbershop;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class BarbershopController extends Controller
 {
+    protected $createBarbershopAction;
+    public function __construct(CreateBarbershopAction $createBarbershopAction)
+    {
+        $this->createBarbershopAction = $createBarbershopAction;
+    }
+
     public function store(Request $request)
     {
-        if (!in_array(strval($request->user()->type), ['barbeiro', 'admin'])) {
+
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'address' => 'required|string|max:255|unique:barbershops,address',
+                'phone' => 'required|string|max:20|unique:barbershops,phone',
+            ]);
+            $barbershop = $this->createBarbershopAction->__invoke($validated, $request->user()->id);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Barbearia criada com sucesso.',
+                'data' => $barbershop
+            ], 201);
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Você não tem permissão para criar uma barbearia'
-            ], 403);
+                'message' => 'Erro ao cadastrar barbearia',
+                'errors' => $e->getMessage()
+            ]);
         }
-
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'address' => 'required|string',
-            'phone' => 'required|string|max:20|unique:barbershops,phone',
-        ]);
-
-        $barbershop = Barbershop::create([
-            'name' => $validated['name'],
-            'address' => $validated['address'],
-            'phone' => $validated['phone'],
-            'owner_id' => $request->user()->id
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Barbearia criada com sucesso',
-            'data' => $barbershop
-        ], 201);
     }
+
 
     public function list(Request $request)
     {
