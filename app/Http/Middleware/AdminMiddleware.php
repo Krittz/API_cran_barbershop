@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
@@ -16,12 +15,12 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!in_array($request->user()?->role, ['adm'])) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Acesso não autorizada.'
-            ], 403);
+        if ($request->user() && $request->user()->role === 'adm') {
+            return $next($request);
         }
-        return $next($request);
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Acesso não autorizado.'
+        ], 403);
     }
 }

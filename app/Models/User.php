@@ -39,13 +39,6 @@ class User extends Authenticatable
             get: fn($value) => $value,
             set: function ($value) {
                 $cleaned = preg_replace('/[^0-9]/', '', $value);
-
-                if (strlen($cleaned) === 11) {
-                    return '(' . substr($cleaned, 0, 2) . ') '
-                        . substr($cleaned, 2, 5) . '-'
-                        . substr($cleaned, 7, 4);
-                }
-
                 return $cleaned;
             }
         );

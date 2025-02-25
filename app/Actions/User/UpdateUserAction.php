@@ -2,28 +2,19 @@
 
 namespace App\Actions\User;
 
+use App\Exceptions\InvalidPasswordException;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class UpdateUserAction
 {
     public function __invoke(User $user, array $data)
     {
-        if(Auth::id() !== $user->id){
-            throw ValidationException::withMessages([
-                'auth'=> ['Você não tem permissão para alterar os dados de outro usuário.'],
-            ]);
-        }
-        if (!Hash::check($data['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'password' => ['A senha fornecida está incorreta.'],
-            ]);
-        }
+
+        // Atualiza apenas os campos fornecidos
         $user->update([
             'name' => $data['name'] ?? $user->name,
-            'phone' => $data['phone'] ?? $user->phone
+            'phone' => $data['phone'] ?? $user->phone,
         ]);
 
         return $user;

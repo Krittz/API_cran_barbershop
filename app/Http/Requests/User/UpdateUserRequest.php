@@ -11,7 +11,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->id === $this->route('user')->id;
+        return $this->user()->can('update', $this->route('user'));
     }
 
     /**
@@ -21,18 +21,18 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $userId = $this->route('user')?->id ?? 'NULL';
+
         return [
             'name' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|unique:users,phone,' . $this->route('user')->id,
-            'password' => 'required|string|min:8',
+            'phone' => "nullable|string|unique:users,phone,{$userId}",
         ];
     }
+
 
     public function messages()
     {
         return [
-            'password.required' => 'A senha é obrigatória para confirmar a alteração.',
-            'password.min' => 'A senha deve ter pelo menos 8 caracteres.',
             'phone.unique' => 'Este número de telefone já está em uso.'
         ];
     }
