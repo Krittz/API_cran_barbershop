@@ -14,7 +14,17 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'barbershop_permission' => \App\Http\Middleware\BarbershopPermission::class
+            'barbershop_permission' => \App\Http\Middleware\BarbershopPermission::class,
+            'admin_permission' => \App\Http\Middleware\AdminMiddleware::class
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions) {})->create();
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'code' => $e instanceof \Illuminate\Http\Response ? $e->getStatusCode() : 500
+            ], $e instanceof \Illuminate\Http\Response ? $e->getStatusCode() : 500);
+        });
+    })
+    ->create();

@@ -1,17 +1,18 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
-class CreateBarbershopRequest extends FormRequest
+class DeleteUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return false;
+        return Auth::user()->id === $this->route('user')->id || Auth::user()->role === 'adm';
     }
 
     /**
@@ -21,10 +22,6 @@ class CreateBarbershopRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:255|unique:barbershops,address',
-            'phone' => 'required|string|max:20|unique:barbershops,phone',
-        ];
+        return [];
     }
 }

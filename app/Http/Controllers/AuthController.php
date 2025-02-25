@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Actions\Auth\LoginAction;
+use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -10,34 +11,17 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+
+    public function login(LoginRequest $request, LoginAction $loginAction)
     {
-        try {
-            $validated = $request->validate([
-                'email' => 'required|email|string|max:255',
-                'password' => 'required|string|max:255|min:8'
-            ]);
+        $validated = $request->validated();
+        $token = $loginAction($validated);
 
-            if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
-                $user = Auth::user();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Usuário logado com sucesso',
 
-                $token = $user->createToken('CrAnBarber')->plainTextToken;
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Usuário logado com sucesso',
-                ])->cookie('token', $token, 60, null, null, false, true);
-            }
-            throw ValidationException::withMessages([
-                'email' => ['As credenciais fornecidas estão incorretas']
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Erro de validação',
-                'errors' => $e->errors()
-            ], 422);
-        }
+        ])->cookie('token', $token, 60, null, null, false, true);
     }
     public function logout(Request $request)
     {

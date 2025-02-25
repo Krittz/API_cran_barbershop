@@ -4,9 +4,10 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class BarbershopPermission
+class AdminMiddleware
 {
     /**
      * Handle an incoming request.
@@ -15,10 +16,10 @@ class BarbershopPermission
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!in_array($request->user()?->role, ['barber', 'adm'])) {
+        if (!in_array($request->user()?->role, ['adm'])) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Você não tem permissão para criar uma barbearia'
+                'message' => 'Acesso não autorizada.'
             ], 403);
         }
         return $next($request);
